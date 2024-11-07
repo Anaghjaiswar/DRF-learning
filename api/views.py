@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render,get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -25,4 +25,27 @@ def recipe_list(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
+
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+def recipe_detail(request, pk):
+    # Fetch the recipe by primary key (pk) or return a 404 error if not found
+    recipe = get_object_or_404(Recipe, pk=pk)
+
+    if request.method == 'GET':
+        # Retrieve and return the recipe details
+        serializer = RecipeSerializer(recipe)
+        return Response(serializer.data)
+
+    elif request.method in ['PUT', 'PATCH']:
+        # Update the recipe details with the data from the request
+        serializer = RecipeSerializer(recipe, data=request.data, partial=(request.method == 'PATCH'))
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        # Delete the recipe and return a 204 No Content response
+        recipe.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
