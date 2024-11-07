@@ -1,16 +1,27 @@
 from django.shortcuts import render,get_object_or_404
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework import status 
+from rest_framework.decorators import api_view, permission_classes
 from .models import Recipe
 from .serializers import RecipeSerializer
 from django.http import HttpResponse
+from rest_framework.permissions import IsAuthenticated, AllowAny,IsAdminUser, IsAuthenticatedOrReadOnly
 
-
+@api_view(['GET'])
+@permission_classes([AllowAny])
 def home(request):
-    return HttpResponse('welcome to the Recipes API!')
+    return Response({'message':'welcome to the Recipes API!'})
+
+@api_view(['GET','POST'])
+@permission_classes([IsAdminUser])
+def admin_only_view(request):
+    # Only accessible by admin users
+    return Response({"message": "Admin content"})
+
+
 
 @api_view(['GET','POST'])  #this decorator tells DRF that this view will handle GET requests
+@permission_classes([IsAuthenticatedOrReadOnly])
 def recipe_list(request):
     if request.method == 'GET':
         #When a GET request is made, it returns the list of recipes.
