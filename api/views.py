@@ -1,11 +1,12 @@
 from django.shortcuts import render,get_object_or_404
 from rest_framework.response import Response
 from rest_framework import status 
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from .models import Recipe
 from .serializers import RecipeSerializer
 from django.http import HttpResponse
 from rest_framework.permissions import IsAuthenticated, AllowAny,IsAdminUser, IsAuthenticatedOrReadOnly
+from rest_framework.authentication import TokenAuthentication
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -13,6 +14,7 @@ def home(request):
     return Response({'message':'welcome to the Recipes API!'})
 
 @api_view(['GET','POST'])
+@authentication_classes([TokenAuthentication]) # Use TokenAuthentication here
 @permission_classes([IsAdminUser])
 def admin_only_view(request):
     # Only accessible by admin users
@@ -21,6 +23,7 @@ def admin_only_view(request):
 
 
 @api_view(['GET','POST'])  #this decorator tells DRF that this view will handle GET requests
+@authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticatedOrReadOnly])
 def recipe_list(request):
     if request.method == 'GET':
@@ -38,6 +41,8 @@ def recipe_list(request):
         
 
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def recipe_detail(request, pk):
     # Fetch the recipe by primary key (pk) or return a 404 error if not found
     recipe = get_object_or_404(Recipe, pk=pk)
