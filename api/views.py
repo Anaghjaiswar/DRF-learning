@@ -5,11 +5,12 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from .models import Recipe
 from .serializers import RecipeSerializer
 from django.http import HttpResponse
-from rest_framework.permissions import IsAuthenticated, AllowAny,IsAdminUser
+from rest_framework.permissions import IsAuthenticated, AllowAny,IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework.authentication import TokenAuthentication
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .permissions import IsOwnerOrReadOnly
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework import generics
 
 
 @api_view(['GET'])
@@ -77,3 +78,18 @@ def logout_view(request):
         return Response({"message":"successfully logged out"}, status=status.HTTP_205_RESET_CONTENT)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+# list and create recipes
+class RecipeListCreateView(generics.ListCreateAPIView):
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+
+# Retrieve, update, or delete a single recipe
+class RecipeDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Recipe.objects.all()
+    serializer_class = RecipeSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly]

@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from api.views import home
+from api.views import RecipeListCreateView,RecipeDetailView
 
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework_simplejwt.views import (
@@ -31,6 +32,8 @@ urlpatterns = [
     path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
     path('api/token/',TokenObtainPairView.as_view(), name = 'token_obtain_pair'),  #login
     path('api/token/refresh/',TokenRefreshView.as_view(), name = 'token_refresh'),  #refresh token
+    path('recipes/', RecipeListCreateView.as_view(), name='recipe-list-create'),
+    path('recipes/<int:pk>/',RecipeDetailView.as_view(), name='recipe-detail'),
 ]
 
 
