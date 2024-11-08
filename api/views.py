@@ -5,8 +5,12 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from .models import Recipe
 from .serializers import RecipeSerializer
 from django.http import HttpResponse
-from rest_framework.permissions import IsAuthenticated, AllowAny,IsAdminUser, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated, AllowAny,IsAdminUser
 from rest_framework.authentication import TokenAuthentication
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from .permissions import IsOwnerOrReadOnly
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -23,8 +27,7 @@ def admin_only_view(request):
 
 
 @api_view(['GET','POST'])  #this decorator tells DRF that this view will handle GET requests
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticatedOrReadOnly])
+@permission_classes([IsAuthenticated])
 def recipe_list(request):
     if request.method == 'GET':
         #When a GET request is made, it returns the list of recipes.
@@ -41,8 +44,7 @@ def recipe_list(request):
         
 
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated,IsOwnerOrReadOnly])
 def recipe_detail(request, pk):
     # Fetch the recipe by primary key (pk) or return a 404 error if not found
     recipe = get_object_or_404(Recipe, pk=pk)
@@ -65,3 +67,13 @@ def recipe_detail(request, pk):
         recipe.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
+@api_view(['POST'])
+def logout_view(request):
+    try:
+        refresh_token = request.data["refresh"]
+        token = RefreshToken(refresh_token)
+        token.blacklist()
+        return Response({"message":"successfully logged out"}, status=status.HTTP_205_RESET_CONTENT)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)

@@ -17,11 +17,22 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from api.views import home
+
 from rest_framework.authtoken.views import obtain_auth_token
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
     path('', home),
     path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
+    path('api/token/',TokenObtainPairView.as_view(), name = 'token_obtain_pair'),  #login
+    path('api/token/refresh/',TokenRefreshView.as_view(), name = 'token_refresh'),  #refresh token
 ]
+
+
+# token/: Endpoint to obtain the access and refresh token pair by providing valid credentials.
+# token/refresh/: Endpoint to refresh an access token using a refresh token.
